@@ -5,6 +5,7 @@ from random import randrange
 
 import voluptuous as vol
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.event import async_call_later, async_track_time_change
@@ -19,6 +20,8 @@ _LOGGER = logging.getLogger(__name__)
 CONF_SOURCES = "sources"
 CONF_SOURCE_NAME = "name"
 CONF_SOURCE_ARGS = "args"  # scraper-source arguments
+
+# TODO: move to const
 CONF_SEPARATOR = "separator"
 CONF_FETCH_TIME = "fetch_time"
 CONF_RANDOM_FETCH_TIME_OFFSET = "random_fetch_time_offset"
@@ -68,6 +71,10 @@ CONFIG_SCHEMA = vol.Schema(
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the component. config contains data from configuration.yaml."""
+    _LOGGER.error(f"async_setup, config={config}")
+
+    if DOMAIN not in config:
+        return True
 
     # create empty api object as singleton
     api = WasteCollectionApi(
@@ -99,6 +106,36 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
     # initial fetch of all data
     hass.add_job(api._fetch)
+
+    return True
+
+
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
+    """Set up from a config entry, config_entry contains data from config entry database."""
+    _LOGGER.error(f"async_setup_entry, config_entry={config_entry}")
+#   if not config_entry.update_listeners:
+#       config_entry.add_update_listener(async_update_options)
+
+#   # create api object
+#   api = WiffiIntegrationApi(hass)
+#   api.async_setup(config_entry)
+
+#   # store api object
+#   hass.data.setdefault(DOMAIN, {})[config_entry.entry_id] = api
+
+#   try:
+#       await api.server.start_server()
+#   except OSError as exc:
+#       if exc.errno != errno.EADDRINUSE:
+#           _LOGGER.error("Start_server failed, errno: %d", exc.errno)
+#           return False
+#       _LOGGER.error("Port %s already in use", config_entry.data[CONF_PORT])
+#       raise ConfigEntryNotReady from exc
+
+#   for component in PLATFORMS:
+#       hass.async_create_task(
+#           hass.config_entries.async_forward_entry_setup(config_entry, component)
+#       )
 
     return True
 
